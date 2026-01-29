@@ -84,22 +84,6 @@ const renderTeleprompter = () => {
   });
 };
 
-const hexToRgba = (hex, alpha) => {
-  const cleanHex = hex.replace("#", "");
-  const fullHex =
-    cleanHex.length === 3
-      ? cleanHex
-          .split("")
-          .map((char) => char + char)
-          .join("")
-      : cleanHex;
-  const int = Number.parseInt(fullHex, 16);
-  const r = (int >> 16) & 255;
-  const g = (int >> 8) & 255;
-  const b = int & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-
 const updateSpeed = () => {
   speedValue.textContent = `${speedInput.value} px/s`;
   outputSpeedValue.textContent = `${outputSpeedInput.value} px/s`;
@@ -116,8 +100,10 @@ const updateFontSize = () => {
 
 const updateAlternateColor = () => {
   alternateColorValue.textContent = alternateColorInput.value.toUpperCase();
-  const rgba = hexToRgba(alternateColorInput.value, 0.35);
-  document.documentElement.style.setProperty("--line-alt", rgba);
+  document.documentElement.style.setProperty(
+    "--line-alt",
+    alternateColorInput.value
+  );
 };
 
 const updateMirroring = () => {
