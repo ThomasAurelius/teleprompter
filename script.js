@@ -191,15 +191,14 @@ const syncFontSize = (value) => {
   updateFontSize();
 };
 
-const openOutput = () => {
-  outputOverlay.hidden = false;
-  document.body.classList.add("output-open");
+const setOutputOpen = (shouldOpen) => {
+  outputOverlay.hidden = !shouldOpen;
+  document.body.classList.toggle("output-open", shouldOpen);
+  openOutputButton.setAttribute("aria-expanded", String(shouldOpen));
 };
 
-const closeOutput = () => {
-  outputOverlay.hidden = true;
-  document.body.classList.remove("output-open");
-};
+const openOutput = () => setOutputOpen(true);
+const closeOutput = () => setOutputOpen(false);
 
 scriptInput.addEventListener("input", renderTeleprompter);
 scriptInput.addEventListener("blur", renderTeleprompter);
@@ -227,8 +226,15 @@ outputPlayButton.addEventListener("click", play);
 outputPauseButton.addEventListener("click", pause);
 outputResetButton.addEventListener("click", reset);
 
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !outputOverlay.hidden) {
+    closeOutput();
+  }
+});
+
 syncSpeed(speedInput.value);
 syncFontSize(fontSizeInput.value);
 updateAlternateColor();
 updateMirroring();
 renderTeleprompter();
+setOutputOpen(!outputOverlay.hidden);
