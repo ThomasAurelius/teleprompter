@@ -36,7 +36,6 @@ let isPlaying = false;
 let isDragging = false;
 let dragStartY = 0;
 let dragStartOffset = 0;
-let wasPlayingBeforeDrag = false;
 
 const ensureLineNodes = () => {
   const lines = [];
@@ -315,11 +314,10 @@ const startDrag = (clientY) => {
   isDragging = true;
   dragStartY = clientY;
   dragStartOffset = offset;
-  wasPlayingBeforeDrag = isPlaying;
   if (isPlaying) {
     pause();
   }
-  outputTeleprompter.style.cursor = 'grabbing';
+  outputTeleprompter.classList.add('dragging');
 };
 
 const onDrag = (clientY) => {
@@ -332,12 +330,7 @@ const onDrag = (clientY) => {
 const endDrag = () => {
   if (!isDragging) return;
   isDragging = false;
-  outputTeleprompter.style.cursor = 'grab';
-  // Optionally resume playing if it was playing before drag
-  // Commenting this out so it stays paused after dragging
-  // if (wasPlayingBeforeDrag) {
-  //   play();
-  // }
+  outputTeleprompter.classList.remove('dragging');
 };
 
 // Mouse event handlers
@@ -346,18 +339,14 @@ outputTeleprompter.addEventListener('mousedown', (event) => {
   startDrag(event.clientY);
 });
 
-outputTeleprompter.addEventListener('mousemove', (event) => {
+document.addEventListener('mousemove', (event) => {
   if (isDragging) {
     event.preventDefault();
     onDrag(event.clientY);
   }
 });
 
-outputTeleprompter.addEventListener('mouseup', () => {
-  endDrag();
-});
-
-outputTeleprompter.addEventListener('mouseleave', () => {
+document.addEventListener('mouseup', () => {
   endDrag();
 });
 
@@ -376,16 +365,17 @@ outputTeleprompter.addEventListener('touchmove', (event) => {
   }
 });
 
-outputTeleprompter.addEventListener('touchend', () => {
-  endDrag();
+outputTeleprompter.addEventListener('touchend', (event) => {
+  if (event.touches.length === 0) {
+    endDrag();
+  }
 });
 
-outputTeleprompter.addEventListener('touchcancel', () => {
-  endDrag();
+outputTeleprompter.addEventListener('touchcancel', (event) => {
+  if (event.touches.length === 0) {
+    endDrag();
+  }
 });
-
-// Set initial cursor style
-outputTeleprompter.style.cursor = 'grab';
 
 scriptInput.addEventListener("input", renderTeleprompter);
 scriptInput.addEventListener("blur", renderTeleprompter);

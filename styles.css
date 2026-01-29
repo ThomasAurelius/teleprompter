@@ -274,7 +274,11 @@ button:hover:not(:disabled) {
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
-  -ms-user-select: none;
+  cursor: grab;
+}
+
+.output-teleprompter.dragging {
+  cursor: grabbing;
 }
 
 .output-teleprompter .teleprompter-content {
