@@ -92,19 +92,12 @@ const createTextFragment = (text) => {
     lines.pop();
   }
   
-  if (lines.length === 1) {
-    // Single line: create text node
-    fragment.appendChild(document.createTextNode(lines[0]));
-  } else {
-    // Multiple lines: insert text nodes with br tags for line breaks
-    lines.forEach((line, index) => {
-      fragment.appendChild(document.createTextNode(line));
-      // Add br tag after each line except the last
-      if (index < lines.length - 1) {
-        fragment.appendChild(document.createElement("br"));
-      }
-    });
-  }
+  // Wrap each line in a div element for consistency with contenteditable behavior
+  lines.forEach((line) => {
+    const div = document.createElement('div');
+    div.textContent = line;
+    fragment.appendChild(div);
+  });
   
   return fragment;
 };
