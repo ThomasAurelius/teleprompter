@@ -66,7 +66,7 @@ const ensureLineNodes = () => {
   return lines.length ? lines : [{ text: "" }];
 };
 
-const stripInlineFormatting = (node) => {
+const stripInlineFormatting = (node, isRoot = true) => {
   if (node.nodeType !== Node.ELEMENT_NODE) {
     return;
   }
@@ -76,8 +76,12 @@ const stripInlineFormatting = (node) => {
   node.removeAttribute("color");
   node.removeAttribute("size");
   node.removeAttribute("face");
+  // Only remove class attribute from children, not from the root node (which has the "line" class)
+  if (!isRoot) {
+    node.removeAttribute("class");
+  }
   node.removeAttribute("style");
-  Array.from(node.children).forEach(stripInlineFormatting);
+  Array.from(node.children).forEach((child) => stripInlineFormatting(child, false));
 };
 
 const createTextFragment = (text) => {
