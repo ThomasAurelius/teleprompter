@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teleprompter</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Teleprompter Studio</h1>
+      <p>Enter formatted text, then press play to scroll it smoothly.</p>
+    </header>
+
+    <section class="controls">
+      <div class="control-group">
+        <label for="speed">Scroll speed</label>
+        <input id="speed" type="range" min="10" max="200" value="60" />
+        <span id="speedValue">60 px/s</span>
+      </div>
+      <div class="control-group">
+        <label for="fontSize">Text size</label>
+        <input id="fontSize" type="range" min="18" max="80" value="40" />
+        <span id="fontSizeValue">40 px</span>
+      </div>
+      <div class="control-group toggles">
+        <label><input id="alternateLines" type="checkbox" checked /> Alternate line colors</label>
+        <label><input id="flipHorizontal" type="checkbox" /> Flip horizontally</label>
+        <label><input id="flipVertical" type="checkbox" /> Flip vertically</label>
+      </div>
+      <div class="control-group buttons">
+        <button id="playButton" type="button">Play</button>
+        <button id="pauseButton" type="button" disabled>Pause</button>
+        <button id="resetButton" type="button">Reset</button>
+      </div>
+    </section>
+
+    <section class="editor">
+      <div class="editor-pane">
+        <h2>Script</h2>
+        <div
+          id="scriptInput"
+          class="script-input"
+          contenteditable="true"
+          spellcheck="true"
+        >
+          <div>Welcome to your teleprompter.</div>
+          <div><strong>Bold</strong>, <em>italic</em>, and <u>underlined</u> text is supported.</div>
+          <div>Use line breaks to pace your delivery.</div>
+          <div>Use the mirror toggles for reflective setups.</div>
+        </div>
+        <p class="hint">Tip: Use Enter for a new line. Formatting shortcuts (Ctrl/Cmd + B/I/U) work here.</p>
+      </div>
+      <div class="preview-pane">
+        <h2>Teleprompter Preview</h2>
+        <div id="teleprompter" class="teleprompter">
+          <div id="teleprompterContent" class="teleprompter-content"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
