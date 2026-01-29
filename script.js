@@ -148,21 +148,9 @@ const sanitizeNode = (node) => {
   return sanitizedElement;
 };
 
-const sanitizePaste = (html, text) => {
-  if (!html) {
-    return createTextFragment(text);
-  }
-
-  const container = document.createElement("div");
-  container.innerHTML = html;
-  const fragment = document.createDocumentFragment();
-  Array.from(container.childNodes).forEach((child) => {
-    const sanitizedChild = sanitizeNode(child);
-    if (sanitizedChild) {
-      fragment.appendChild(sanitizedChild);
-    }
-  });
-  return fragment;
+const sanitizePaste = (text) => {
+  // Always use plain text to ensure alternate coloring works correctly
+  return createTextFragment(text);
 };
 
 const insertFragmentAtSelection = (fragment) => {
@@ -324,9 +312,8 @@ scriptInput.addEventListener("paste", (event) => {
   if (!clipboardData) {
     return;
   }
-  const html = clipboardData.getData("text/html");
   const text = clipboardData.getData("text/plain");
-  const fragment = sanitizePaste(html, text);
+  const fragment = sanitizePaste(text);
   insertFragmentAtSelection(fragment);
   renderTeleprompter();
 });
