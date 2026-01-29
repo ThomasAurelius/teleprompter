@@ -45,6 +45,10 @@ const ensureLineNodes = () => {
   childNodes.forEach((node) => {
     if (node.nodeType === Node.TEXT_NODE) {
       const text = node.textContent || "";
+      // Skip text nodes that are only whitespace
+      if (text.trim() === "") {
+        return;
+      }
       text.split(/\n/).forEach((line) => lines.push({ text: line }));
       return;
     }
