@@ -189,10 +189,19 @@ button:hover:not(:disabled) {
 
 .teleprompter-content .line {
   margin-bottom: 12px;
+  color: var(--text);
+}
+
+.teleprompter-content .line * {
+  color: inherit;
 }
 
 .teleprompter-content.alternate .line:nth-child(even) {
   color: var(--line-alt);
+}
+
+.teleprompter-content.alternate .line:nth-child(even) * {
+  color: inherit;
 }
 
 .teleprompter.flip-horizontal .teleprompter-content {

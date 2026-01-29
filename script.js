@@ -62,6 +62,16 @@ const ensureLineNodes = () => {
   return lines.length ? lines : [{ text: "" }];
 };
 
+const stripInlineColor = (node) => {
+  if (node.nodeType !== Node.ELEMENT_NODE) {
+    return;
+  }
+
+  node.style.color = "";
+  node.removeAttribute("color");
+  Array.from(node.children).forEach(stripInlineColor);
+};
+
 const renderTeleprompter = () => {
   teleprompterContent.innerHTML = "";
   outputTeleprompterContent.innerHTML = "";
@@ -75,8 +85,11 @@ const renderTeleprompter = () => {
     } else {
       lineElement.textContent = line.text;
     }
+    stripInlineColor(lineElement);
     teleprompterContent.appendChild(lineElement);
-    outputTeleprompterContent.appendChild(lineElement.cloneNode(true));
+    const outputLine = lineElement.cloneNode(true);
+    stripInlineColor(outputLine);
+    outputTeleprompterContent.appendChild(outputLine);
   });
 
   [teleprompterContent, outputTeleprompterContent].forEach((content) => {
