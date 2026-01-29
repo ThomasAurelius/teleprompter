@@ -216,6 +216,10 @@ button:hover:not(:disabled) {
   z-index: 20;
 }
 
+.output-overlay[hidden] {
+  display: none;
+}
+
 .output-controls {
   display: flex;
   flex-wrap: wrap;
