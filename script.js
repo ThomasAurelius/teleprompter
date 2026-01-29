@@ -148,7 +148,7 @@ const sanitizeNode = (node) => {
   return sanitizedElement;
 };
 
-const sanitizePaste = (html, text) => {
+const sanitizePaste = (text) => {
   // Always use plain text to ensure alternate coloring works correctly
   return createTextFragment(text);
 };
@@ -312,9 +312,8 @@ scriptInput.addEventListener("paste", (event) => {
   if (!clipboardData) {
     return;
   }
-  const html = clipboardData.getData("text/html");
   const text = clipboardData.getData("text/plain");
-  const fragment = sanitizePaste(html, text);
+  const fragment = sanitizePaste(text);
   insertFragmentAtSelection(fragment);
   renderTeleprompter();
 });
