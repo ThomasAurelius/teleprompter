@@ -24,6 +24,11 @@
         <input id="fontSize" type="range" min="18" max="80" value="40" />
         <span id="fontSizeValue">40 px</span>
       </div>
+      <div class="control-group">
+        <label for="alternateColor">Alternate line color</label>
+        <input id="alternateColor" type="color" value="#5fd1ff" />
+        <span id="alternateColorValue">#5FD1FF</span>
+      </div>
       <div class="control-group toggles">
         <label><input id="alternateLines" type="checkbox" checked /> Alternate line colors</label>
         <label><input id="flipHorizontal" type="checkbox" /> Flip horizontally</label>
@@ -33,6 +38,7 @@
         <button id="playButton" type="button">Play</button>
         <button id="pauseButton" type="button" disabled>Pause</button>
         <button id="resetButton" type="button">Reset</button>
+        <button id="openOutputButton" type="button">Open Output</button>
       </div>
     </section>
 
@@ -59,6 +65,30 @@
         </div>
       </div>
     </section>
+  </div>
+
+  <div id="outputOverlay" class="output-overlay" hidden>
+    <div class="output-controls">
+      <div class="output-controls-group">
+        <button id="outputPlayButton" type="button">Play</button>
+        <button id="outputPauseButton" type="button" disabled>Pause</button>
+        <button id="outputResetButton" type="button">Reset</button>
+      </div>
+      <div class="output-controls-group">
+        <label for="outputSpeed">Speed</label>
+        <input id="outputSpeed" type="range" min="10" max="200" value="60" />
+        <span id="outputSpeedValue">60 px/s</span>
+      </div>
+      <div class="output-controls-group">
+        <label for="outputFontSize">Size</label>
+        <input id="outputFontSize" type="range" min="18" max="80" value="40" />
+        <span id="outputFontSizeValue">40 px</span>
+      </div>
+      <button id="closeOutputButton" class="output-close" type="button">Close</button>
+    </div>
+    <div id="outputTeleprompter" class="teleprompter output-teleprompter">
+      <div id="outputTeleprompterContent" class="teleprompter-content"></div>
+    </div>
   </div>
 
   <script src="script.js"></script>
