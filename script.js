@@ -71,8 +71,8 @@ const stripInlineFormatting = (node, isRoot = true) => {
     return;
   }
 
-  node.style.color = "";
-  node.style.fontSize = "";
+  // Remove inline styles and formatting attributes
+  node.removeAttribute("style");
   node.removeAttribute("color");
   node.removeAttribute("size");
   node.removeAttribute("face");
@@ -80,7 +80,6 @@ const stripInlineFormatting = (node, isRoot = true) => {
   if (!isRoot) {
     node.removeAttribute("class");
   }
-  node.removeAttribute("style");
   Array.from(node.children).forEach((child) => stripInlineFormatting(child, false));
 };
 
