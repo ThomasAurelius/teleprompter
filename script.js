@@ -95,7 +95,12 @@ const createTextFragment = (text) => {
   // Wrap each line in a div element for consistency with contenteditable behavior
   lines.forEach((line) => {
     const div = document.createElement('div');
-    div.textContent = line;
+    if (line === '') {
+      // Empty lines need a br element to maintain proper height and cursor positioning
+      div.appendChild(document.createElement('br'));
+    } else {
+      div.textContent = line;
+    }
     fragment.appendChild(div);
   });
   
