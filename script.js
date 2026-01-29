@@ -86,11 +86,26 @@ const stripInlineFormatting = (node, isRoot = true) => {
 const createTextFragment = (text) => {
   const fragment = document.createDocumentFragment();
   const lines = text.split(/\r?\n/);
-  lines.forEach((line) => {
-    const div = document.createElement("div");
-    div.textContent = line;
-    fragment.appendChild(div);
-  });
+  
+  // Filter out trailing empty line from text ending with newline
+  if (lines.length > 1 && lines[lines.length - 1] === '') {
+    lines.pop();
+  }
+  
+  if (lines.length === 1) {
+    // Single line: create text node
+    fragment.appendChild(document.createTextNode(lines[0]));
+  } else {
+    // Multiple lines: insert text nodes with br tags for line breaks
+    lines.forEach((line, index) => {
+      fragment.appendChild(document.createTextNode(line));
+      // Add br tag after each line except the last
+      if (index < lines.length - 1) {
+        fragment.appendChild(document.createElement("br"));
+      }
+    });
+  }
+  
   return fragment;
 };
 
