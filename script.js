@@ -32,6 +32,11 @@ let offset = 0;
 let lastFrameTime = null;
 let isPlaying = false;
 
+// Drag state
+let isDragging = false;
+let dragStartY = 0;
+let dragStartOffset = 0;
+
 const ensureLineNodes = () => {
   const lines = [];
   const childNodes = Array.from(scriptInput.childNodes).filter(
@@ -303,6 +308,74 @@ const setOutputOpen = (shouldOpen) => {
 
 const openOutput = () => setOutputOpen(true);
 const closeOutput = () => setOutputOpen(false);
+
+// Drag functionality for output teleprompter
+const startDrag = (clientY) => {
+  isDragging = true;
+  dragStartY = clientY;
+  dragStartOffset = offset;
+  if (isPlaying) {
+    pause();
+  }
+  outputTeleprompter.classList.add('dragging');
+};
+
+const onDrag = (clientY) => {
+  if (!isDragging) return;
+  const deltaY = clientY - dragStartY;
+  offset = dragStartOffset + deltaY;
+  setScrollOffset();
+};
+
+const endDrag = () => {
+  if (!isDragging) return;
+  isDragging = false;
+  outputTeleprompter.classList.remove('dragging');
+};
+
+// Mouse event handlers
+outputTeleprompter.addEventListener('mousedown', (event) => {
+  event.preventDefault();
+  startDrag(event.clientY);
+});
+
+document.addEventListener('mousemove', (event) => {
+  if (isDragging) {
+    event.preventDefault();
+    onDrag(event.clientY);
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  endDrag();
+});
+
+// Touch event handlers
+outputTeleprompter.addEventListener('touchstart', (event) => {
+  if (event.touches.length === 1) {
+    event.preventDefault();
+    startDrag(event.touches[0].clientY);
+  }
+});
+
+outputTeleprompter.addEventListener('touchmove', (event) => {
+  if (isDragging && event.touches.length === 1) {
+    event.preventDefault();
+    onDrag(event.touches[0].clientY);
+  }
+});
+
+outputTeleprompter.addEventListener('touchend', (event) => {
+  if (event.touches.length === 0) {
+    endDrag();
+  }
+});
+
+outputTeleprompter.addEventListener('touchcancel', (event) => {
+  if (event.touches.length === 0) {
+    endDrag();
+  }
+});
 
 scriptInput.addEventListener("input", renderTeleprompter);
 scriptInput.addEventListener("blur", renderTeleprompter);
