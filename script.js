@@ -27,10 +27,17 @@ const outputPlayButton = document.getElementById("outputPlayButton");
 const outputPauseButton = document.getElementById("outputPauseButton");
 const outputResetButton = document.getElementById("outputResetButton");
 const closeOutputButton = document.getElementById("closeOutputButton");
+const voiceToggleButton = document.getElementById("voiceToggleButton");
+const voiceStatus = document.getElementById("voiceStatus");
 
 let offset = 0;
 let lastFrameTime = null;
 let isPlaying = false;
+let voiceEnabled = false;
+let recognition = null;
+let lastResultTime = null;
+const voiceSamples = [];
+const maxVoiceSamples = 6;
 
 // Drag state
 let isDragging = false;
@@ -300,6 +307,119 @@ const syncFontSize = (value) => {
   updateFontSize();
 };
 
+const setVoiceStatus = (text, stateClass) => {
+  voiceStatus.textContent = text;
+  voiceStatus.classList.remove("on", "off", "error");
+  if (stateClass) {
+    voiceStatus.classList.add(stateClass);
+  }
+};
+
+const getSpeechRecognition = () =>
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
+const supportsSpeechRecognition = () => Boolean(getSpeechRecognition());
+
+const calculateAverageWpm = () => {
+  if (voiceSamples.length === 0) {
+    return null;
+  }
+  const sum = voiceSamples.reduce((total, sample) => total + sample, 0);
+  return sum / voiceSamples.length;
+};
+
+const mapWpmToSpeed = (wpm) => {
+  const minSpeed = Number(speedInput.min);
+  const maxSpeed = Number(speedInput.max);
+  const target = Math.min(maxSpeed, Math.max(minSpeed, wpm * 1.35));
+  const current = Number(speedInput.value);
+  return Math.round(current * 0.6 + target * 0.4);
+};
+
+const handleVoiceResult = (event) => {
+  const now = performance.now();
+  for (let i = event.resultIndex; i < event.results.length; i += 1) {
+    const result = event.results[i];
+    if (!result.isFinal) {
+      continue;
+    }
+    const transcript = result[0]?.transcript?.trim() ?? "";
+    if (!transcript) {
+      continue;
+    }
+    const words = transcript.split(/\s+/).filter(Boolean);
+    if (words.length === 0) {
+      continue;
+    }
+    if (lastResultTime !== null) {
+      const deltaMinutes = (now - lastResultTime) / 60000;
+      if (deltaMinutes > 0) {
+        const wpm = words.length / deltaMinutes;
+        voiceSamples.push(wpm);
+        if (voiceSamples.length > maxVoiceSamples) {
+          voiceSamples.shift();
+        }
+        const averageWpm = calculateAverageWpm();
+        if (averageWpm) {
+          const newSpeed = mapWpmToSpeed(averageWpm);
+          syncSpeed(newSpeed);
+          setVoiceStatus(`Listening · ${Math.round(averageWpm)} wpm`, "on");
+        }
+      }
+    }
+    lastResultTime = now;
+  }
+};
+
+const startVoiceRecognition = () => {
+  if (!supportsSpeechRecognition()) {
+    setVoiceStatus("Speech recognition unavailable", "error");
+    voiceToggleButton.disabled = true;
+    return;
+  }
+
+  if (!recognition) {
+    const SpeechRecognition = getSpeechRecognition();
+    recognition = new SpeechRecognition();
+    recognition.lang = navigator.language || "en-US";
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.onresult = handleVoiceResult;
+    recognition.onerror = (event) => {
+      setVoiceStatus(`Mic error: ${event.error}`, "error");
+    };
+    recognition.onend = () => {
+      if (voiceEnabled) {
+        recognition.start();
+      }
+    };
+  }
+
+  voiceSamples.length = 0;
+  lastResultTime = null;
+  recognition.start();
+  setVoiceStatus("Listening…", "on");
+};
+
+const stopVoiceRecognition = () => {
+  if (recognition) {
+    recognition.onend = null;
+    recognition.stop();
+  }
+  setVoiceStatus("Off", "off");
+};
+
+const toggleVoiceControl = () => {
+  voiceEnabled = !voiceEnabled;
+  if (voiceEnabled) {
+    voiceToggleButton.textContent = "Disable Mic";
+    startVoiceRecognition();
+  } else {
+    voiceToggleButton.textContent = "Enable Mic";
+    stopVoiceRecognition();
+  }
+};
+
 const setOutputOpen = (shouldOpen) => {
   outputOverlay.hidden = !shouldOpen;
   document.body.classList.toggle("output-open", shouldOpen);
@@ -410,6 +530,7 @@ outputFontSizeInput.addEventListener("input", (event) =>
 outputPlayButton.addEventListener("click", play);
 outputPauseButton.addEventListener("click", pause);
 outputResetButton.addEventListener("click", reset);
+voiceToggleButton.addEventListener("click", toggleVoiceControl);
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !outputOverlay.hidden) {
@@ -423,3 +544,7 @@ updateAlternateColor();
 updateMirroring();
 renderTeleprompter();
 setOutputOpen(!outputOverlay.hidden);
+if (!supportsSpeechRecognition()) {
+  setVoiceStatus("Speech recognition unavailable", "error");
+  voiceToggleButton.disabled = true;
+}
