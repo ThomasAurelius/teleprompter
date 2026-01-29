@@ -62,14 +62,102 @@ const ensureLineNodes = () => {
   return lines.length ? lines : [{ text: "" }];
 };
 
-const stripInlineColor = (node) => {
+const stripInlineFormatting = (node) => {
   if (node.nodeType !== Node.ELEMENT_NODE) {
     return;
   }
 
   node.style.color = "";
+  node.style.fontSize = "";
   node.removeAttribute("color");
-  Array.from(node.children).forEach(stripInlineColor);
+  node.removeAttribute("size");
+  node.removeAttribute("face");
+  node.removeAttribute("style");
+  Array.from(node.children).forEach(stripInlineFormatting);
+};
+
+const createTextFragment = (text) => {
+  const fragment = document.createDocumentFragment();
+  const lines = text.split(/\r?\n/);
+  lines.forEach((line, index) => {
+    fragment.appendChild(document.createTextNode(line));
+    if (index < lines.length - 1) {
+      fragment.appendChild(document.createElement("br"));
+    }
+  });
+  return fragment;
+};
+
+const sanitizeNode = (node) => {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return document.createTextNode(node.textContent || "");
+  }
+
+  if (node.nodeType !== Node.ELEMENT_NODE) {
+    return null;
+  }
+
+  const tagName = node.tagName.toUpperCase();
+  const allowedInlineTags = new Set(["B", "STRONG", "I", "EM", "U", "SPAN"]);
+  const allowedBlockTags = new Set(["DIV", "P"]);
+
+  if (tagName === "BR") {
+    return document.createElement("br");
+  }
+
+  if (!allowedInlineTags.has(tagName) && !allowedBlockTags.has(tagName)) {
+    const fragment = document.createDocumentFragment();
+    Array.from(node.childNodes).forEach((child) => {
+      const sanitizedChild = sanitizeNode(child);
+      if (sanitizedChild) {
+        fragment.appendChild(sanitizedChild);
+      }
+    });
+    return fragment;
+  }
+
+  const elementTag = tagName === "P" ? "div" : tagName.toLowerCase();
+  const sanitizedElement = document.createElement(elementTag);
+  Array.from(node.childNodes).forEach((child) => {
+    const sanitizedChild = sanitizeNode(child);
+    if (sanitizedChild) {
+      sanitizedElement.appendChild(sanitizedChild);
+    }
+  });
+
+  stripInlineFormatting(sanitizedElement);
+  return sanitizedElement;
+};
+
+const sanitizePaste = (html, text) => {
+  if (!html) {
+    return createTextFragment(text);
+  }
+
+  const container = document.createElement("div");
+  container.innerHTML = html;
+  const fragment = document.createDocumentFragment();
+  Array.from(container.childNodes).forEach((child) => {
+    const sanitizedChild = sanitizeNode(child);
+    if (sanitizedChild) {
+      fragment.appendChild(sanitizedChild);
+    }
+  });
+  return fragment;
+};
+
+const insertFragmentAtSelection = (fragment) => {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) {
+    return;
+  }
+
+  const range = selection.getRangeAt(0);
+  range.deleteContents();
+  range.insertNode(fragment);
+  range.collapse(false);
+  selection.removeAllRanges();
+  selection.addRange(range);
 };
 
 const renderTeleprompter = () => {
@@ -85,16 +173,18 @@ const renderTeleprompter = () => {
     } else {
       lineElement.textContent = line.text;
     }
-    stripInlineColor(lineElement);
+    stripInlineFormatting(lineElement);
     teleprompterContent.appendChild(lineElement);
     const outputLine = lineElement.cloneNode(true);
-    stripInlineColor(outputLine);
+    stripInlineFormatting(outputLine);
     outputTeleprompterContent.appendChild(outputLine);
   });
 
-  [teleprompterContent, outputTeleprompterContent].forEach((content) => {
-    content.classList.toggle("alternate", alternateLinesInput.checked);
-  });
+  teleprompterContent.classList.remove("alternate");
+  outputTeleprompterContent.classList.toggle(
+    "alternate",
+    alternateLinesInput.checked
+  );
 };
 
 const updateSpeed = () => {
@@ -175,6 +265,7 @@ const pause = () => {
 
 const reset = () => {
   offset = 0;
+  lastFrameTime = null;
   setScrollOffset();
 };
 
@@ -201,6 +292,18 @@ const closeOutput = () => setOutputOpen(false);
 
 scriptInput.addEventListener("input", renderTeleprompter);
 scriptInput.addEventListener("blur", renderTeleprompter);
+scriptInput.addEventListener("paste", (event) => {
+  event.preventDefault();
+  const clipboardData = event.clipboardData;
+  if (!clipboardData) {
+    return;
+  }
+  const html = clipboardData.getData("text/html");
+  const text = clipboardData.getData("text/plain");
+  const fragment = sanitizePaste(html, text);
+  insertFragmentAtSelection(fragment);
+  renderTeleprompter();
+});
 
 speedInput.addEventListener("input", (event) => syncSpeed(event.target.value));
 fontSizeInput.addEventListener("input", (event) =>
