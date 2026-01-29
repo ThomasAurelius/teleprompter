@@ -86,11 +86,28 @@ const stripInlineFormatting = (node, isRoot = true) => {
 const createTextFragment = (text) => {
   const fragment = document.createDocumentFragment();
   const lines = text.split(/\r?\n/);
-  lines.forEach((line) => {
-    const div = document.createElement("div");
-    div.textContent = line;
-    fragment.appendChild(div);
-  });
+  
+  if (lines.length === 1) {
+    // Single line: insert as text node inline
+    fragment.appendChild(document.createTextNode(lines[0]));
+  } else {
+    // Multiple lines: create divs for each line
+    lines.forEach((line, index) => {
+      if (index === 0) {
+        // First line: insert as text node to append to current line
+        fragment.appendChild(document.createTextNode(line));
+        fragment.appendChild(document.createElement("br"));
+      } else if (index === lines.length - 1) {
+        // Last line: insert as text node
+        fragment.appendChild(document.createTextNode(line));
+      } else {
+        // Middle lines: insert as text node with br
+        fragment.appendChild(document.createTextNode(line));
+        fragment.appendChild(document.createElement("br"));
+      }
+    });
+  }
+  
   return fragment;
 };
 
