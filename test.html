@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test</title>
+</head>
+<body>
+    <div id="test" contenteditable="true">
+        <div>Line 1</div>
+        <div>Line 2</div>
+        <div>Line 3</div>
+    </div>
+    <button onclick="showNodes()">Show Nodes</button>
+    <pre id="output"></pre>
+    <script>
+        function showNodes() {
+            const test = document.getElementById('test');
+            const output = document.getElementById('output');
+            let result = '';
+            Array.from(test.childNodes).forEach((node, i) => {
+                result += `Node ${i}: ${node.nodeType} (${node.nodeName}) - "${node.textContent?.substring(0, 50)}"\n`;
+            });
+            output.textContent = result;
+        }
+    </script>
+</body>
+</html>
