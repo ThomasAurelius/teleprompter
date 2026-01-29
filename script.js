@@ -314,9 +314,6 @@ const startDrag = (clientY) => {
   isDragging = true;
   dragStartY = clientY;
   dragStartOffset = offset;
-  if (isPlaying) {
-    pause();
-  }
   outputTeleprompter.classList.add('dragging');
 };
 
