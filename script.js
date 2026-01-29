@@ -32,6 +32,12 @@ let offset = 0;
 let lastFrameTime = null;
 let isPlaying = false;
 
+// Drag state
+let isDragging = false;
+let dragStartY = 0;
+let dragStartOffset = 0;
+let wasPlayingBeforeDrag = false;
+
 const ensureLineNodes = () => {
   const lines = [];
   const childNodes = Array.from(scriptInput.childNodes).filter(
@@ -303,6 +309,83 @@ const setOutputOpen = (shouldOpen) => {
 
 const openOutput = () => setOutputOpen(true);
 const closeOutput = () => setOutputOpen(false);
+
+// Drag functionality for output teleprompter
+const startDrag = (clientY) => {
+  isDragging = true;
+  dragStartY = clientY;
+  dragStartOffset = offset;
+  wasPlayingBeforeDrag = isPlaying;
+  if (isPlaying) {
+    pause();
+  }
+  outputTeleprompter.style.cursor = 'grabbing';
+};
+
+const onDrag = (clientY) => {
+  if (!isDragging) return;
+  const deltaY = clientY - dragStartY;
+  offset = dragStartOffset + deltaY;
+  setScrollOffset();
+};
+
+const endDrag = () => {
+  if (!isDragging) return;
+  isDragging = false;
+  outputTeleprompter.style.cursor = 'grab';
+  // Optionally resume playing if it was playing before drag
+  // Commenting this out so it stays paused after dragging
+  // if (wasPlayingBeforeDrag) {
+  //   play();
+  // }
+};
+
+// Mouse event handlers
+outputTeleprompter.addEventListener('mousedown', (event) => {
+  event.preventDefault();
+  startDrag(event.clientY);
+});
+
+outputTeleprompter.addEventListener('mousemove', (event) => {
+  if (isDragging) {
+    event.preventDefault();
+    onDrag(event.clientY);
+  }
+});
+
+outputTeleprompter.addEventListener('mouseup', () => {
+  endDrag();
+});
+
+outputTeleprompter.addEventListener('mouseleave', () => {
+  endDrag();
+});
+
+// Touch event handlers
+outputTeleprompter.addEventListener('touchstart', (event) => {
+  if (event.touches.length === 1) {
+    event.preventDefault();
+    startDrag(event.touches[0].clientY);
+  }
+});
+
+outputTeleprompter.addEventListener('touchmove', (event) => {
+  if (isDragging && event.touches.length === 1) {
+    event.preventDefault();
+    onDrag(event.touches[0].clientY);
+  }
+});
+
+outputTeleprompter.addEventListener('touchend', () => {
+  endDrag();
+});
+
+outputTeleprompter.addEventListener('touchcancel', () => {
+  endDrag();
+});
+
+// Set initial cursor style
+outputTeleprompter.style.cursor = 'grab';
 
 scriptInput.addEventListener("input", renderTeleprompter);
 scriptInput.addEventListener("blur", renderTeleprompter);

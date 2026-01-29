@@ -271,6 +271,10 @@ button:hover:not(:disabled) {
   height: auto;
   border-radius: 0;
   border: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .output-teleprompter .teleprompter-content {
