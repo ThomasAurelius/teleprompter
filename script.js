@@ -180,7 +180,10 @@ const renderTeleprompter = () => {
     outputTeleprompterContent.appendChild(outputLine);
   });
 
-  teleprompterContent.classList.remove("alternate");
+  teleprompterContent.classList.toggle(
+    "alternate",
+    alternateLinesInput.checked
+  );
   outputTeleprompterContent.classList.toggle(
     "alternate",
     alternateLinesInput.checked
