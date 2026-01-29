@@ -187,11 +187,15 @@ const renderTeleprompter = () => {
   const lines = ensureLineNodes();
 
   lines.forEach((line) => {
-    const lineElement = document.createElement("div");
-    lineElement.classList.add("line");
+    let lineElement;
     if (line.node) {
-      lineElement.appendChild(line.node);
+      // Use the cloned node itself as the line element
+      lineElement = line.node;
+      lineElement.classList.add("line");
     } else {
+      // Create a new div for plain text
+      lineElement = document.createElement("div");
+      lineElement.classList.add("line");
       lineElement.textContent = line.text;
     }
     stripInlineFormatting(lineElement);
