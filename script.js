@@ -83,11 +83,10 @@ const stripInlineFormatting = (node) => {
 const createTextFragment = (text) => {
   const fragment = document.createDocumentFragment();
   const lines = text.split(/\r?\n/);
-  lines.forEach((line, index) => {
-    fragment.appendChild(document.createTextNode(line));
-    if (index < lines.length - 1) {
-      fragment.appendChild(document.createElement("br"));
-    }
+  lines.forEach((line) => {
+    const div = document.createElement("div");
+    div.textContent = line;
+    fragment.appendChild(div);
   });
   return fragment;
 };
