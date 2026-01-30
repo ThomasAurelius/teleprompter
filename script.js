@@ -29,6 +29,8 @@ const outputResetButton = document.getElementById("outputResetButton");
 const closeOutputButton = document.getElementById("closeOutputButton");
 const voiceToggleButton = document.getElementById("voiceToggleButton");
 const voiceStatus = document.getElementById("voiceStatus");
+const outputVoiceToggleButton = document.getElementById("outputVoiceToggleButton");
+const outputVoiceStatus = document.getElementById("outputVoiceStatus");
 
 let offset = 0;
 let lastFrameTime = null;
@@ -310,8 +312,11 @@ const syncFontSize = (value) => {
 const setVoiceStatus = (text, stateClass) => {
   voiceStatus.textContent = text;
   voiceStatus.classList.remove("on", "off", "error");
+  outputVoiceStatus.textContent = text;
+  outputVoiceStatus.classList.remove("on", "off", "error");
   if (stateClass) {
     voiceStatus.classList.add(stateClass);
+    outputVoiceStatus.classList.add(stateClass);
   }
 };
 
@@ -375,6 +380,7 @@ const startVoiceRecognition = () => {
   if (!supportsSpeechRecognition()) {
     setVoiceStatus("Speech recognition unavailable", "error");
     voiceToggleButton.disabled = true;
+    outputVoiceToggleButton.disabled = true;
     return;
   }
 
@@ -413,9 +419,11 @@ const toggleVoiceControl = () => {
   voiceEnabled = !voiceEnabled;
   if (voiceEnabled) {
     voiceToggleButton.textContent = "Disable Mic";
+    outputVoiceToggleButton.textContent = "Disable Mic";
     startVoiceRecognition();
   } else {
     voiceToggleButton.textContent = "Enable Mic";
+    outputVoiceToggleButton.textContent = "Enable Mic";
     stopVoiceRecognition();
   }
 };
@@ -531,6 +539,7 @@ outputPlayButton.addEventListener("click", play);
 outputPauseButton.addEventListener("click", pause);
 outputResetButton.addEventListener("click", reset);
 voiceToggleButton.addEventListener("click", toggleVoiceControl);
+outputVoiceToggleButton.addEventListener("click", toggleVoiceControl);
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !outputOverlay.hidden) {
@@ -547,4 +556,5 @@ setOutputOpen(!outputOverlay.hidden);
 if (!supportsSpeechRecognition()) {
   setVoiceStatus("Speech recognition unavailable", "error");
   voiceToggleButton.disabled = true;
+  outputVoiceToggleButton.disabled = true;
 }
