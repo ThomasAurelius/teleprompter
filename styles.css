@@ -99,6 +99,9 @@ header p {
   font-size: 14px;
   color: var(--text);
 }
+.underline {
+  text-decoration: underline;
+}
 
 .buttons {
   flex-direction: row;
