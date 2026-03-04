@@ -502,6 +502,16 @@ outputTeleprompter.addEventListener('touchcancel', (event) => {
   }
 });
 
+// Wheel (mousewheel) scrolling for both teleprompter views
+const onWheel = (event) => {
+  event.preventDefault();
+  offset -= event.deltaY;
+  setScrollOffset();
+};
+
+teleprompter.addEventListener('wheel', onWheel, { passive: false });
+outputTeleprompter.addEventListener('wheel', onWheel, { passive: false });
+
 scriptInput.addEventListener("input", renderTeleprompter);
 scriptInput.addEventListener("blur", renderTeleprompter);
 scriptInput.addEventListener("paste", (event) => {
