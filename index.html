@@ -53,8 +53,12 @@
           Enable Mic
         </button>
         <span id="voiceStatus" class="voice-status off">Off</span>
+        <label for="voiceSensitivity">Voice speed scale</label>
+        <input id="voiceSensitivity" type="range" min="0.2" max="2.0" step="0.1" value="0.5" />
+        <span id="voiceSensitivityValue">0.5×</span>
         <p class="voice-hint">
           Uses on-device speech recognition to match your speaking tempo.
+          Raise the scale if scrolling feels too slow; lower it if too fast.
         </p>
       </div>
     </section>
@@ -109,6 +113,9 @@
           Enable Mic
         </button>
         <span id="outputVoiceStatus" class="voice-status off">Off</span>
+        <label for="outputVoiceSensitivity">Voice scale</label>
+        <input id="outputVoiceSensitivity" type="range" min="0.2" max="2.0" step="0.1" value="0.5" />
+        <span id="outputVoiceSensitivityValue">0.5×</span>
       </div>
       <button id="closeOutputButton" class="output-close" type="button">
         Back to Options
