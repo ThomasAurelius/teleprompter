@@ -29,8 +29,12 @@ const outputResetButton = document.getElementById("outputResetButton");
 const closeOutputButton = document.getElementById("closeOutputButton");
 const voiceToggleButton = document.getElementById("voiceToggleButton");
 const voiceStatus = document.getElementById("voiceStatus");
+const voiceSensitivityInput = document.getElementById("voiceSensitivity");
+const voiceSensitivityValue = document.getElementById("voiceSensitivityValue");
 const outputVoiceToggleButton = document.getElementById("outputVoiceToggleButton");
 const outputVoiceStatus = document.getElementById("outputVoiceStatus");
+const outputVoiceSensitivityInput = document.getElementById("outputVoiceSensitivity");
+const outputVoiceSensitivityValue = document.getElementById("outputVoiceSensitivityValue");
 
 let offset = 0;
 let lastFrameTime = null;
@@ -38,6 +42,7 @@ let isPlaying = false;
 let voiceEnabled = false;
 let recognition = null;
 let lastResultTime = null;
+let previousInterimWordCount = 0;
 const voiceSamples = [];
 const maxVoiceSamples = 6;
 
@@ -309,6 +314,18 @@ const syncFontSize = (value) => {
   updateFontSize();
 };
 
+const updateVoiceSensitivity = () => {
+  const formatted = `${Number(voiceSensitivityInput.value).toFixed(1)}×`;
+  voiceSensitivityValue.textContent = formatted;
+  outputVoiceSensitivityValue.textContent = formatted;
+};
+
+const syncVoiceSensitivity = (value) => {
+  voiceSensitivityInput.value = value;
+  outputVoiceSensitivityInput.value = value;
+  updateVoiceSensitivity();
+};
+
 const setVoiceStatus = (text, stateClass) => {
   voiceStatus.textContent = text;
   voiceStatus.classList.remove("on", "off", "error");
@@ -336,7 +353,8 @@ const calculateAverageWpm = () => {
 const mapWpmToSpeed = (wpm) => {
   const minSpeed = Number(speedInput.min);
   const maxSpeed = Number(speedInput.max);
-  const target = Math.min(maxSpeed, Math.max(minSpeed, wpm * 1.35));
+  const sensitivity = Number(voiceSensitivityInput.value);
+  const target = Math.min(maxSpeed, Math.max(minSpeed, wpm * sensitivity));
   const current = Number(speedInput.value);
   return Math.round(current * 0.6 + target * 0.4);
 };
@@ -345,21 +363,26 @@ const handleVoiceResult = (event) => {
   const now = performance.now();
   for (let i = event.resultIndex; i < event.results.length; i += 1) {
     const result = event.results[i];
-    if (!result.isFinal) {
-      continue;
-    }
     const transcript = result[0]?.transcript?.trim() ?? "";
-    if (!transcript) {
-      continue;
-    }
     const words = transcript.split(/\s+/).filter(Boolean);
-    if (words.length === 0) {
+    const currentWordCount = words.length;
+    const newWordCount = currentWordCount - previousInterimWordCount;
+
+    if (result.isFinal) {
+      previousInterimWordCount = 0;
+    } else {
+      previousInterimWordCount = currentWordCount;
+    }
+
+    if (newWordCount <= 0) {
       continue;
     }
     if (lastResultTime !== null) {
       const deltaMinutes = (now - lastResultTime) / 60000;
       if (deltaMinutes > 0) {
-        const wpm = words.length / deltaMinutes;
+        // Cap at 300 WPM to filter unrealistic spikes caused by rapid-fire
+        // events at session start or buffered audio being processed at once.
+        const wpm = Math.min(300, newWordCount / deltaMinutes);
         voiceSamples.push(wpm);
         if (voiceSamples.length > maxVoiceSamples) {
           voiceSamples.shift();
@@ -389,12 +412,14 @@ const startVoiceRecognition = () => {
     recognition = new SpeechRecognition();
     recognition.lang = navigator.language || "en-US";
     recognition.continuous = true;
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.onresult = handleVoiceResult;
     recognition.onerror = (event) => {
       setVoiceStatus(`Mic error: ${event.error}`, "error");
     };
     recognition.onend = () => {
+      previousInterimWordCount = 0;
+      lastResultTime = null;
       if (voiceEnabled) {
         recognition.start();
       }
@@ -403,6 +428,7 @@ const startVoiceRecognition = () => {
 
   voiceSamples.length = 0;
   lastResultTime = null;
+  previousInterimWordCount = 0;
   recognition.start();
   setVoiceStatus("Listening…", "on");
 };
@@ -412,6 +438,7 @@ const stopVoiceRecognition = () => {
     recognition.onend = null;
     recognition.stop();
   }
+  previousInterimWordCount = 0;
   setVoiceStatus("Off", "off");
 };
 
@@ -550,6 +577,12 @@ outputPauseButton.addEventListener("click", pause);
 outputResetButton.addEventListener("click", reset);
 voiceToggleButton.addEventListener("click", toggleVoiceControl);
 outputVoiceToggleButton.addEventListener("click", toggleVoiceControl);
+voiceSensitivityInput.addEventListener("input", (event) =>
+  syncVoiceSensitivity(event.target.value)
+);
+outputVoiceSensitivityInput.addEventListener("input", (event) =>
+  syncVoiceSensitivity(event.target.value)
+);
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !outputOverlay.hidden) {
@@ -559,6 +592,7 @@ document.addEventListener("keydown", (event) => {
 
 syncSpeed(speedInput.value);
 syncFontSize(fontSizeInput.value);
+syncVoiceSensitivity(voiceSensitivityInput.value);
 updateAlternateColor();
 updateMirroring();
 renderTeleprompter();
